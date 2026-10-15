@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdiomLingo - Interactive English Idiom Listening & Speaking App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+        .glass-card {
+            background: rgba(30, 27, 75, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-slate-100 min-h-full font-sans antialiased flex flex-col selection:bg-purple-500 selection:text-white">
+
+    <!-- Top Header & Stats Dashboard -->
+    <header class="border-b border-purple-900/40 bg-slate-950/60 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <i data-lucide="headphones" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-purple-200 to-pink-300 bg-clip-text text-transparent">IdiomLingo</h1>
+                    <p class="text-xs text-purple-300 font-medium">Master English Idioms with Speech & Audio</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <div class="glass-card px-3 py-1.5 rounded-xl flex items-center space-x-2 shadow-inner">
+                    <span class="text-amber-400 text-lg">🔥</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Streak</div>
+                        <div id="stat-streak" class="text-sm font-bold text-amber-300">0</div>
+                    </div>
+                </div>
+                <div class="glass-card px-3 py-1.5 rounded-xl flex items-center space-x-2 shadow-inner">
+                    <span class="text-emerald-400 text-lg">🎯</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Accuracy</div>
+                        <div id="stat-accuracy" class="text-sm font-bold text-emerald-300">0%</div>
+                    </div>
+                </div>
+                <div class="glass-card px-3 py-1.5 rounded-xl flex items-center space-x-2 shadow-inner hidden sm:flex">
+                    <span class="text-purple-400 text-lg">⭐</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Completed</div>
+                        <div id="stat-score" class="text-sm font-bold text-purple-300">0 / 10</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
+        <div class="glass-panel p-1.5 rounded-2xl flex space-x-2 shadow-xl max-w-xl mx-auto">
+            <button onclick="switchTab('library')" id="tab-btn-library" class="flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all duration-300 bg-purple-600 text-white shadow-lg shadow-purple-600/30">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span>Idiom Library</span>
+            </button>
+            <button onclick="switchTab('speak')" id="tab-btn-speak" class="flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5">
+                <i data-lucide="mic" class="w-4 h-4"></i>
+                <span>Speak Challenge</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5">
+                <i data-lucide="headphones" class="w-4 h-4"></i>
+                <span>Listening Quiz</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-8 flex-1 w-full">
+
+        <!-- TAB 1: LIBRARY -->
+        <section id="tab-library" class="space-y-6">
+            <div class="text-center max-w-2xl mx-auto mb-8">
+                <h2 class="text-3xl font-bold tracking-tight text-white mb-2">Essential Idiom Collection</h2>
+                <p class="text-slate-400 text-sm">Explore 10 indispensable English idioms. Click the audio button to hear native pronunciation or read through definitions and examples.</p>
+            </div>
+            
+            <!-- Search & Filter bar -->
+            <div class="max-w-md mx-auto mb-6 relative">
+                <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                <input type="text" id="idiom-search" placeholder="Search idioms or definitions..." oninput="filterIdioms()" class="w-full pl-12 pr-4 py-3 bg-slate-950/80 border border-purple-900/50 rounded-2xl text-sm focus:outline-none focus:border-purple-500 text-white placeholder-slate-500 shadow-inner">
+            </div>
+
+            <div id="idioms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated idiom cards -->
+            </div>
+        </section>
+
+        <!-- TAB 2: SPEAK & MATCH CHALLENGE -->
+        <section id="tab-speak" class="hidden space-y-6 max-w-3xl mx-auto">
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-bold tracking-tight text-white mb-2">Voice Pronunciation Challenge</h2>
+                <p class="text-slate-400 text-sm">Listen to the target idiom or read the definition, tap the microphone, and speak clearly into your microphone!</p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden border border-purple-500/30 text-center">
+                <!-- Background decorative glow -->
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-pink-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <span id="speak-progress" class="text-xs font-semibold px-3 py-1 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/40">Question 1 of 10</span>
+                    <button onclick="nextSpeakPrompt()" class="text-xs text-purple-300 hover:text-white flex items-center space-x-1 bg-white/5 px-3 py-1 rounded-full border border-white/10 hover:bg-white/10 transition">
+                        <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                        <span>Skip / Next</span>
+                    </button>
+                </div>
+
+                <div class="text-6xl mb-4" id="speak-emoji">🎭</div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-purple-400 mb-1">Target Idiom</div>
+                <h3 id="speak-idiom-title" class="text-2xl sm:text-3xl font-black text-white mb-3">Break a leg</h3>
+                
+                <div class="bg-slate-900/80 p-4 rounded-2xl max-w-lg mx-auto mb-6 border border-slate-800">
+                    <p id="speak-definition" class="text-sm text-slate-300 italic">"Used to wish someone good luck, especially before a performance."</p>
+                    <p id="speak-example" class="text-xs text-slate-400 mt-2 font-mono">Example: "You'll do great on stage tonight, break a leg!"</p>
+                </div>
+
+                <!-- Audio Listen button -->
+                <div class="flex justify-center gap-3 mb-8">
+                    <button onclick="playCurrentSpeakAudio()" class="px-4 py-2 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-300 hover:bg-purple-600/30 font-medium text-sm flex items-center space-x-2 transition">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                        <span>Listen to Native Audio</span>
+                    </button>
+                </div>
+
+                <!-- Microphone Action Area -->
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <button id="mic-btn" onclick="toggleSpeechRecognition()" class="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/40 hover:scale-105 active:scale-95 transition transform relative group">
+                        <i data-lucide="mic" class="w-8 h-8 text-white"></i>
+                        <div id="mic-pulse" class="absolute inset-0 rounded-full border-2 border-pink-400 animate-ping opacity-0 pointer-events-none"></div>
+                    </button>
+                    <p id="mic-status" class="text-sm font-medium text-slate-300">Click microphone & speak the idiom</p>
+                </div>
+
+                <!-- Result Box -->
+                <div id="speak-result-box" class="mt-6 hidden p-4 rounded-2xl transition-all duration-300">
+                    <div id="speak-result-title" class="font-bold text-base mb-1"></div>
+                    <div id="speak-result-details" class="text-xs text-slate-300"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: LISTENING & GUESS QUIZ -->
+        <section id="tab-quiz" class="hidden space-y-6 max-w-3xl mx-auto">
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-bold tracking-tight text-white mb-2">Listening & Guessing Quiz</h2>
+                <p class="text-slate-400 text-sm">Test your ear! Listen to the audio clip or read the clue, then select the correct matching idiom.</p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-3xl shadow-2xl relative border border-purple-500/30">
+                <div class="flex justify-between items-center mb-6">
+                    <span id="quiz-progress" class="text-xs font-semibold px-3 py-1 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/40">Question 1 of 10</span>
+                    <span id="quiz-score-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-700/40">Score: 0</span>
+                </div>
+
+                <div class="text-center mb-8">
+                    <button onclick="playQuizAudioPrompt()" class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30 hover:scale-105 transition transform">
+                        <i data-lucide="volume-2" class="w-8 h-8 text-white"></i>
+                    </button>
+                    <p class="text-xs text-purple-300 font-medium mb-1">Tap icon to hear audio prompt</p>
+                    <div class="mt-4 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 max-w-lg mx-auto">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold block mb-1">Definition Clue</span>
+                        <p id="quiz-clue" class="text-base text-slate-200 font-medium"></p>
+                    </div>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Dynamically populated options -->
+                </div>
+
+                <!-- Next Quiz Button -->
+                <div id="quiz-next-container" class="mt-8 text-center hidden">
+                    <button onclick="nextQuizQuestion()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-600/30 hover:opacity-90 transition">
+                        Next Question <i data-lucide="arrow-right" class="w-4 h-4 inline ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-purple-900/30 py-6 text-center text-xs text-slate-500">
+        <p>IdiomLingo • Built with Web Speech API, Tailwind CSS & Lucide Icons</p>
+    </footer>
+
+    <!-- Custom Notification / Message Modal -->
+    <div id="notification-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="glass-panel p-6 rounded-3xl max-w-md w-full text-center border border-purple-500/40 shadow-2xl">
+            <div id="modal-icon" class="text-4xl mb-3">🎉</div>
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Awesome Job!</h3>
+            <p id="modal-message" class="text-sm text-slate-300 mb-6">You successfully completed the challenge!</p>
+            <button onclick="closeModal()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition shadow-lg shadow-purple-600/30">Continue</button>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // 10 Common English Idioms Data
+        const idiomsData = [
+            {
+                id: 1,
+                idiom: "Break a leg",
+                phonetic: "/breɪk ə lɛɡ/",
+                emoji: "🎭",
+                definition: "Used to wish someone good luck, especially before a performance or presentation.",
+                example: "You're going to rock the stage tonight, just break a leg!"
+            },
+            {
+                id: 2,
+                idiom: "Piece of cake",
+                phonetic: "/piːs ɒv keɪk/",
+                emoji: "🍰",
+                definition: "Something very easy to do or accomplish.",
+                example: "Don't worry about the math test tomorrow; it's going to be a piece of cake."
+            },
+            {
+                id: 3,
+                idiom: "Bite the bullet",
+                phonetic: "/baɪt ðə ˈbʊlɪt/",
+                emoji: "🎯",
+                definition: "To face a difficult or unpleasant situation with courage and get it over with.",
+                example: "I hate visiting the dentist, but I need to bite the bullet and go."
+            },
+            {
+                id: 4,
+                idiom: "Cost an arm and a leg",
+                phonetic: "/kɒst ən ɑːm ænd ə lɛɡ/",
+                emoji: "💸",
+                definition: "To be extremely expensive or cost a fortune.",
+                example: "I'd love to buy that new sports car, but it costs an arm and a leg."
+            },
+            {
+                id: 5,
+                idiom: "Hit the nail on the head",
+                phonetic: "/hɪt ðə neɪl ɒn ðə hɛd/",
+                emoji: "🔨",
+                definition: "To describe or identify exactly what is causing a problem or situation correctly.",
+                example: "Sarah hit the nail on the head when she said our marketing strategy needs a reboot."
+            },
+            {
+                id: 6,
+                idiom: "Under the weather",
+                phonetic: "/ˈʌndə ðə ˈwɛðə/",
+                emoji: "🌧️",
+                definition: "Feeling slightly sick, unwell, or low on energy.",
+                example: "I'm feeling a bit under the weather today, so I think I'll stay in bed."
+            },
+            {
+                id: 7,
+                idiom: "Blessing in disguise",
+                phonetic: "/ˈblɛsɪŋ ɪn dɪsˈɡaɪz/",
+                emoji: "🍀",
+                definition: "A good thing that seemed bad or unlucky at first glance.",
+                example: "Missing my flight turned out to be a blessing in disguise because I met my old friend at the lounge."
+            },
+            {
+                id: 8,
+                idiom: "Spill the beans",
+                phonetic: "/spɪl ðə biːnz/",
+                emoji: "🫘",
+                definition: "To reveal a secret, often unintentionally or prematurely.",
+                example: "We planned a surprise birthday party for Leo, but someone spilled the beans!"
+            },
+            {
+                id: 9,
+                idiom: "Pull someone's leg",
+                phonetic: "/pʊl ˈsʌmwʌnz lɛɡ/",
+                emoji: "🦵",
+                definition: "To tease, joke, or trick someone playfully.",
+                example: "Are you really moving to Mars, or are you just pulling my leg?"
+            },
+            {
+                id: 10,
+                idiom: "Burn the midnight oil",
+                phonetic: "/bɜːn ðə ˈmɪdnaɪt ɔɪl/",
+                emoji: "🕯️",
+                definition: "To work or study late into the night.",
+                example: "She had to burn the midnight oil to finish her dissertation before the deadline."
+            }
+        ];
+
+        // App State & Stats
+        let stats = {
+            streak: parseInt(localStorage.getItem('idiom_streak')) || 0,
+            correct: parseInt(localStorage.getItem('idiom_correct')) || 0,
+            attempts: parseInt(localStorage.getItem('idiom_attempts')) || 0,
+            completed: JSON.parse(localStorage.getItem('idiom_completed')) || []
+        };
+
+        let currentSpeakIndex = 0;
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let isListening = false;
+        let recognitionInstance = null;
+
+        // Initialize App on DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatsUI();
+            renderLibrary();
+            initSpeechRecognition();
+            loadSpeakChallenge(0);
+            loadQuizQuestion(0);
+            lucide.createIcons();
+        });
+
+        // Update Stats Display
+        function updateStatsUI() {
+            document.getElementById('stat-streak').textContent = stats.streak;
+            const accuracy = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+            document.getElementById('stat-accuracy').textContent = accuracy + '%';
+            document.getElementById('stat-score').textContent = `${stats.completed.length} / 10`;
+
+            localStorage.setItem('idiom_streak', stats.streak);
+            localStorage.setItem('idiom_correct', stats.correct);
+            localStorage.setItem('idiom_attempts', stats.attempts);
+            localStorage.setItem('idiom_completed', JSON.stringify(stats.completed));
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            ['library', 'speak', 'quiz'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.className = "flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5";
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.className = "flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center space-x-2 transition-all duration-300 bg-purple-600 text-white shadow-lg shadow-purple-600/30";
+            
+            if (tabName === 'speak') {
+                loadSpeakChallenge(currentSpeakIndex);
+            } else if (tabName === 'quiz') {
+                loadQuizQuestion(currentQuizIndex);
+            }
+            lucide.createIcons();
+        }
+
+        // Web Speech API: TTS Pronunciation
+        function speakText(text, rate = 0.9) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = rate;
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showModal("Notice", "Text-to-speech is not supported in this browser.", "⚠️");
+            }
+        }
+
+        // TAB 1: Render Library
+        function renderLibrary(filter = '') {
+            const grid = document.getElementById('idioms-grid');
+            grid.innerHTML = '';
+
+            const filtered = idiomsData.filter(item => 
+                item.idiom.toLowerCase().includes(filter.toLowerCase()) || 
+                item.definition.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">No idioms found matching your search.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const isCompleted = stats.completed.includes(item.id);
+                const card = document.createElement('div');
+                card.className = "glass-card p-6 rounded-3xl relative flex flex-col justify-between hover:border-purple-500/50 transition-all duration-300 shadow-xl group";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-4xl p-3 bg-purple-900/30 rounded-2xl border border-purple-700/30 group-hover:scale-110 transition-transform">${item.emoji}</span>
+                            <div class="flex items-center space-x-2">
+                                ${isCompleted ? '<span class="text-xs px-2.5 py-1 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-700/40 font-medium">Mastered</span>' : ''}
+                                <button onclick="speakText('${item.idiom}')" class="p-2.5 rounded-xl bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 border border-purple-500/30 transition">
+                                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-1">${item.idiom}</h3>
+                        <p class="text-xs font-mono text-purple-300 mb-3">${item.phonetic}</p>
+                        <p class="text-sm text-slate-300 mb-4">${item.definition}</p>
+                    </div>
+                    <div class="bg-slate-900/80 p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-400 italic">
+                        "${item.example}"
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function filterIdioms() {
+            const query = document.getElementById('idiom-search').value;
+            renderLibrary(query);
+        }
+
+        // TAB 2: Speak & Match Challenge
+        function loadSpeakChallenge(index) {
+            currentSpeakIndex = index % idiomsData.length;
+            const item = idiomsData[currentSpeakIndex];
+
+            document.getElementById('speak-progress').textContent = `Question ${currentSpeakIndex + 1} of ${idiomsData.length}`;
+            document.getElementById('speak-emoji').textContent = item.emoji;
+            document.getElementById('speak-idiom-title').textContent = item.idiom;
+            document.getElementById('speak-definition').textContent = `"${item.definition}"`;
+            document.getElementById('speak-example').textContent = `Example: "${item.example}"`;
+
+            const resultBox = document.getElementById('speak-result-box');
+            resultBox.classList.add('hidden');
+            document.getElementById('mic-status').textContent = "Click microphone & speak the idiom";
+        }
+
+        function playCurrentSpeakAudio() {
+            const item = idiomsData[currentSpeakIndex];
+            speakText(item.idiom);
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn("Speech Recognition API not supported in this browser.");
+                return;
+            }
+
+            recognitionInstance = new SpeechRecognition();
+            recognitionInstance.continuous = false;
+            recognitionInstance.interimResults = false;
+            recognitionInstance.lang = 'en-US';
+
+            recognitionInstance.onstart = () => {
+                isListening = true;
+                document.getElementById('mic-status').textContent = "Listening... Speak now!";
+                document.getElementById('mic-pulse').classList.remove('opacity-0');
+                document.getElementById('mic-btn').classList.add('scale-110', 'ring-4', 'ring-pink-500/50');
+            };
+
+            recognitionInstance.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.trim();
+                evaluateSpeechMatch(transcript);
+            };
+
+            recognitionInstance.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                stopListeningState();
+                document.getElementById('mic-status').textContent = "Could not hear clearly. Try again!";
+            };
+
+            recognitionInstance.onend = () => {
+                stopListeningState();
+            };
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognitionInstance) {
+                showModal("Browser Unsupported", "Speech Recognition is not supported on your browser. Please try Chrome, Edge, or Safari.", "⚠️");
+                return;
+            }
+
+            if (isListening) {
+                recognitionInstance.stop();
+            } else {
+                try {
+                    recognitionInstance.start();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function stopListeningState() {
+            isListening = false;
+            document.getElementById('mic-pulse').classList.add('opacity-0');
+            document.getElementById('mic-btn').classList.remove('scale-110', 'ring-4', 'ring-pink-500/50');
+        }
+
+        function evaluateSpeechMatch(spokenText) {
+            const target = idiomsData[currentSpeakIndex].idiom.toLowerCase();
+            const spoken = spokenText.toLowerCase();
+
+            // Simple cleaning of punctuation
+            const cleanTarget = target.replace(/[^a-z0-9 ]/g, '');
+            const cleanSpoken = spoken.replace(/[^a-z0-9 ]/g, '');
+
+            stats.attempts++;
+
+            const resultBox = document.getElementById('speak-result-box');
+            const titleEl = document.getElementById('speak-result-title');
+            const detailsEl = document.getElementById('speak-result-details');
+            resultBox.classList.remove('hidden');
+
+            // Exact or partial word match check
+            const isMatch = cleanSpoken.includes(cleanTarget) || cleanTarget.includes(cleanSpoken) || calculateSimilarity(cleanTarget, cleanSpoken) > 0.7;
+
+            if (isMatch) {
+                stats.correct++;
+                stats.streak++;
+                if (!stats.completed.includes(idiomsData[currentSpeakIndex].id)) {
+                    stats.completed.push(idiomsData[currentSpeakIndex].id);
+                }
+                updateStatsUI();
+
+                resultBox.className = "mt-6 p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200";
+                titleEl.textContent = "🎉 Perfect Match!";
+                detailsEl.innerHTML = `You said: <b>"${spokenText}"</b>. Outstanding pronunciation!`;
+                
+                // Trigger Confetti
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                document.getElementById('mic-status').textContent = "Great job! Loading next prompt in 2s...";
+                setTimeout(() => {
+                    loadSpeakChallenge(currentSpeakIndex + 1);
+                }, 2000);
+            } else {
+                stats.streak = 0;
+                updateStatsUI();
+
+                resultBox.className = "mt-6 p-4 rounded-2xl bg-rose-950/80 border border-rose-500/40 text-rose-200";
+                titleEl.textContent = "❌ Not quite right";
+                detailsEl.innerHTML = `You said: <b>"${spokenText}"</b>. Target was: <b>"${idiomsData[currentSpeakIndex].idiom}"</b>. Try again!`;
+                document.getElementById('mic-status').textContent = "Tap mic to try speaking again";
+            }
+        }
+
+        function nextSpeakPrompt() {
+            loadSpeakChallenge(currentSpeakIndex + 1);
+        }
+
+        // Levenshtein / Similarity helper for speech matching
+        function calculateSimilarity(s1, s2) {
+            let longer = s1;
+            let shorter = s2;
+            if (s1.length < s2.length) {
+                longer = s2;
+                shorter = s1;
+            }
+            const longerLength = longer.length;
+            if (longerLength === 0) {
+                return 1.0;
+            }
+            return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+        }
+
+        function editDistance(s1, s2) {
+            s1 = s1.toLowerCase();
+            s2 = s2.toLowerCase();
+            const costs = new Array();
+            for (let i = 0; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 0; j <= s2.length; j++) {
+                    if (i === 0) {
+                        costs[j] = j;
+                    } else {
+                        if (j > 0) {
+                            let newValue = costs[j - 1];
+                            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                                newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                            }
+                            costs[j - 1] = lastValue;
+                            lastValue = newValue;
+                        }
+                    }
+                }
+                if (s1.length > 0) {
+                    costs[s2.length] = lastValue;
+                }
+            }
+            return costs[s2.length];
+        }
+
+        // TAB 3: Listening & Guess Quiz
+        let currentQuizItem = null;
+
+        function loadQuizQuestion(index) {
+            currentQuizIndex = index % idiomsData.length;
+            currentQuizItem = idiomsData[currentQuizIndex];
+
+            document.getElementById('quiz-progress').textContent = `Question ${currentQuizIndex + 1} of ${idiomsData.length}`;
+            document.getElementById('quiz-score-badge').textContent = `Score: ${quizScore}`;
+            document.getElementById('quiz-clue').textContent = currentQuizItem.definition;
+            document.getElementById('quiz-next-container').classList.add('hidden');
+
+            // Generate 4 options (1 correct, 3 random distractors)
+            let options = [currentQuizItem];
+            while (options.length < 4) {
+                const randomItem = idiomsData[Math.floor(Math.random() * idiomsData.length)];
+                if (!options.includes(randomItem)) {
+                    options.push(randomItem);
+                }
+            }
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 rounded-2xl glass-card text-left font-semibold text-white hover:border-purple-500 hover:bg-purple-900/30 transition-all flex items-center justify-between group";
+                btn.innerHTML = `
+                    <span class="flex items-center space-x-3">
+                        <span class="text-2xl">${opt.emoji}</span>
+                        <span>${opt.idiom}</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-purple-300"></i>
+                `;
+                btn.onclick = () => selectQuizOption(opt.id, btn);
+                optionsContainer.appendChild(btn);
+            });
+            lucide.createIcons();
+
+            // Auto-play audio prompt
+            playQuizAudioPrompt();
+        }
+
+        function playQuizAudioPrompt() {
+            if (currentQuizItem) {
+                speakText(currentQuizItem.idiom);
+            }
+        }
+
+        function selectQuizOption(selectedId, buttonElement) {
+            const allButtons = document.querySelectorAll('#quiz-options button');
+            allButtons.forEach(b => b.disabled = true);
+
+            stats.attempts++;
+
+            if (selectedId === currentQuizItem.id) {
+                quizScore++;
+                stats.correct++;
+                stats.streak++;
+                if (!stats.completed.includes(currentQuizItem.id)) {
+                    stats.completed.push(currentQuizItem.id);
+                }
+                updateStatsUI();
+
+                buttonElement.className = "p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 font-semibold text-left flex items-center justify-between shadow-lg shadow-emerald-900/30";
+                
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+            } else {
+                stats.streak = 0;
+                updateStatsUI();
+                buttonElement.className = "p-4 rounded-2xl bg-rose-950/80 border border-rose-500 text-rose-200 font-semibold text-left flex items-center justify-between shadow-lg shadow-rose-900/30";
+                
+                // Highlight correct one
+                allButtons.forEach(b => {
+                    if (b.textContent.includes(currentQuizItem.idiom)) {
+                        b.className = "p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 font-semibold text-left flex items-center justify-between";
+                    }
+                });
+            }
+
+            document.getElementById('quiz-score-badge').textContent = `Score: ${quizScore}`;
+            document.getElementById('quiz-next-container').classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex >= idiomsData.length) {
+                showModal("Quiz Completed! 🏆", `You finished the listening quiz with a score of ${quizScore} / ${idiomsData.length}!`, "🎉");
+                currentQuizIndex = 0;
+                quizScore = 0;
+            }
+            loadQuizQuestion(currentQuizIndex);
+        }
+
+        // Modal Controls
+        function showModal(title, message, icon = "🎉") {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-icon').textContent = icon;
+            document.getElementById('notification-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('notification-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
